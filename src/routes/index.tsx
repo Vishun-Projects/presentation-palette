@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import logo from "@/assets/nvision-logo.png";
 import rideElectric from "@/assets/work/ride-electric.jpg";
 import spa from "@/assets/work/spa.jpg";
@@ -61,6 +62,9 @@ const services = [
 function Index() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activePin, setActivePin] = useState<Pin | null>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const cursorFRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -72,11 +76,49 @@ function Index() {
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add("visible")),
-      { threshold: 0.12 },
+      { threshold: 0.08, rootMargin: "0px 0px -60px 0px" },
     );
     document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
+
+  // Custom trailing cursor — desktop / fine-pointer only
+  useEffect(() => {
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    document.documentElement.classList.add("has-cursor");
+    let x = 0, y = 0, fx = 0, fy = 0;
+    let raf = 0;
+    const onMove = (e: MouseEvent) => {
+      x = e.clientX; y = e.clientY;
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      }
+    };
+    const tick = () => {
+      fx += (x - fx) * 0.18;
+      fy += (y - fy) * 0.18;
+      if (cursorFRef.current) {
+        cursorFRef.current.style.transform = `translate(${fx}px, ${fy}px) translate(-50%, -50%)`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    const onOver = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      const hov = t.closest("a,button,[data-cursor='hover']");
+      cursorRef.current?.classList.toggle("is-hover", !!hov);
+      cursorFRef.current?.classList.toggle("is-hover", !!hov);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseover", onOver);
+    raf = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseover", onOver);
+      cancelAnimationFrame(raf);
+      document.documentElement.classList.remove("has-cursor");
+    };
+  }, []);
+
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -93,6 +135,9 @@ function Index() {
 
   return (
     <main className="bg-background text-foreground">
+      <div ref={cursorRef} className="cursor-dot" aria-hidden />
+      <div ref={cursorFRef} className="cursor-ring" aria-hidden />
+
       {/* NAV */}
       <nav
         className={`fixed top-0 inset-x-0 z-50 flex items-center justify-between px-[5vw] transition-all duration-300 ${
@@ -286,24 +331,24 @@ function Index() {
         </div>
         <div className="[column-count:1] sm:[column-count:2] lg:[column-count:3] xl:[column-count:4] [column-gap:12px]">
           {pins.map((p, i) => (
-            <a
+            <button
               key={i}
-              href={p.pdf}
-              target="_blank"
-              rel="noreferrer"
-              className="group relative block break-inside-avoid mb-3 overflow-hidden rounded-sm bg-surface-2 cursor-pointer"
+              type="button"
+              onClick={() => setActivePin(p)}
+              className="group relative block w-full text-left break-inside-avoid mb-3 overflow-hidden rounded-sm bg-surface-2"
             >
               <img
                 src={p.thumb}
                 alt={p.name}
                 loading="lazy"
+                decoding="async"
                 className="w-full block transition-transform duration-500 group-hover:scale-[1.04]"
               />
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-background/85 via-background/40 to-transparent flex flex-col justify-end p-4">
                 <div className="text-sm text-warm">{p.name}</div>
-                <div className="text-[10px] tracking-[0.14em] uppercase text-gold mt-1">{p.cat}</div>
+                <div className="text-[10px] tracking-[0.14em] uppercase text-gold mt-1">View PDF →</div>
               </div>
-            </a>
+            </button>
           ))}
         </div>
       </section>
@@ -451,6 +496,39 @@ function Index() {
           </a>
         </div>
       </footer>
+
+      {/* PDF PREVIEW DIALOG */}
+      <Dialog open={!!activePin} onOpenChange={(o) => !o && setActivePin(null)}>
+        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 bg-background border-gold/20 overflow-hidden flex flex-col">
+          <DialogTitle className="sr-only">{activePin?.name ?? "Project preview"}</DialogTitle>
+          <div className="flex items-center justify-between px-5 py-3 border-b border-gold/15 shrink-0">
+            <div className="min-w-0">
+              <div className="text-[10px] tracking-[0.18em] uppercase text-gold">{activePin?.cat}</div>
+              <div className="font-serif text-lg text-warm truncate">{activePin?.name}</div>
+            </div>
+            {activePin?.pdf && (
+              <a
+                href={activePin.pdf}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 px-3 py-1.5 hover:bg-gold hover:text-background transition-colors shrink-0 ml-3"
+              >
+                Open ↗
+              </a>
+            )}
+          </div>
+          <div className="flex-1 bg-surface-2">
+            {activePin?.pdf && (
+              <iframe
+                key={activePin.pdf}
+                src={`${activePin.pdf}#view=FitH`}
+                title={activePin.name}
+                className="w-full h-full border-0"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
