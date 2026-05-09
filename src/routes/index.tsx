@@ -496,6 +496,39 @@ function Index() {
           </a>
         </div>
       </footer>
+
+      {/* PDF PREVIEW DIALOG */}
+      <Dialog open={!!activePin} onOpenChange={(o) => !o && setActivePin(null)}>
+        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 bg-background border-gold/20 overflow-hidden flex flex-col">
+          <DialogTitle className="sr-only">{activePin?.name ?? "Project preview"}</DialogTitle>
+          <div className="flex items-center justify-between px-5 py-3 border-b border-gold/15 shrink-0">
+            <div className="min-w-0">
+              <div className="text-[10px] tracking-[0.18em] uppercase text-gold">{activePin?.cat}</div>
+              <div className="font-serif text-lg text-warm truncate">{activePin?.name}</div>
+            </div>
+            {activePin?.pdf && (
+              <a
+                href={activePin.pdf}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 px-3 py-1.5 hover:bg-gold hover:text-background transition-colors shrink-0 ml-3"
+              >
+                Open ↗
+              </a>
+            )}
+          </div>
+          <div className="flex-1 bg-surface-2">
+            {activePin?.pdf && (
+              <iframe
+                key={activePin.pdf}
+                src={`${activePin.pdf}#view=FitH`}
+                title={activePin.name}
+                className="w-full h-full border-0"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
