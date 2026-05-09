@@ -135,6 +135,9 @@ function Index() {
 
   return (
     <main className="bg-background text-foreground">
+      <div ref={cursorRef} className="cursor-dot" aria-hidden />
+      <div ref={cursorFRef} className="cursor-ring" aria-hidden />
+
       {/* NAV */}
       <nav
         className={`fixed top-0 inset-x-0 z-50 flex items-center justify-between px-[5vw] transition-all duration-300 ${
