@@ -62,6 +62,9 @@ const services = [
 function Index() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activePin, setActivePin] = useState<Pin | null>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const cursorFRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
