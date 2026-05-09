@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import logo from "@/assets/nvision-logo.png";
 import rideElectric from "@/assets/work/ride-electric.jpg";
 import spa from "@/assets/work/spa.jpg";
