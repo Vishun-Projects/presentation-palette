@@ -331,24 +331,24 @@ function Index() {
         </div>
         <div className="[column-count:1] sm:[column-count:2] lg:[column-count:3] xl:[column-count:4] [column-gap:12px]">
           {pins.map((p, i) => (
-            <a
+            <button
               key={i}
-              href={p.pdf}
-              target="_blank"
-              rel="noreferrer"
-              className="group relative block break-inside-avoid mb-3 overflow-hidden rounded-sm bg-surface-2 cursor-pointer"
+              type="button"
+              onClick={() => setActivePin(p)}
+              className="group relative block w-full text-left break-inside-avoid mb-3 overflow-hidden rounded-sm bg-surface-2"
             >
               <img
                 src={p.thumb}
                 alt={p.name}
                 loading="lazy"
+                decoding="async"
                 className="w-full block transition-transform duration-500 group-hover:scale-[1.04]"
               />
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-background/85 via-background/40 to-transparent flex flex-col justify-end p-4">
                 <div className="text-sm text-warm">{p.name}</div>
-                <div className="text-[10px] tracking-[0.14em] uppercase text-gold mt-1">{p.cat}</div>
+                <div className="text-[10px] tracking-[0.14em] uppercase text-gold mt-1">View PDF →</div>
               </div>
-            </a>
+            </button>
           ))}
         </div>
       </section>
