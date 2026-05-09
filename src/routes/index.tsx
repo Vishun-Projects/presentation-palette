@@ -76,11 +76,49 @@ function Index() {
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add("visible")),
-      { threshold: 0.12 },
+      { threshold: 0.08, rootMargin: "0px 0px -60px 0px" },
     );
     document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
+
+  // Custom trailing cursor — desktop / fine-pointer only
+  useEffect(() => {
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    document.documentElement.classList.add("has-cursor");
+    let x = 0, y = 0, fx = 0, fy = 0;
+    let raf = 0;
+    const onMove = (e: MouseEvent) => {
+      x = e.clientX; y = e.clientY;
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      }
+    };
+    const tick = () => {
+      fx += (x - fx) * 0.18;
+      fy += (y - fy) * 0.18;
+      if (cursorFRef.current) {
+        cursorFRef.current.style.transform = `translate(${fx}px, ${fy}px) translate(-50%, -50%)`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    const onOver = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      const hov = t.closest("a,button,[data-cursor='hover']");
+      cursorRef.current?.classList.toggle("is-hover", !!hov);
+      cursorFRef.current?.classList.toggle("is-hover", !!hov);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseover", onOver);
+    raf = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseover", onOver);
+      cancelAnimationFrame(raf);
+      document.documentElement.classList.remove("has-cursor");
+    };
+  }, []);
+
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
