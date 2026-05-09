@@ -1,12 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { PdfViewer } from "@/components/PdfViewer";
 import logo from "@/assets/nvision-logo.png";
-import rideElectric from "@/assets/work/ride-electric.jpg";
-import spa from "@/assets/work/spa.jpg";
-import marriotts from "@/assets/work/marriotts.jpg";
+import { getPinsFn, getTestimonialsFn, sendFeedbackFn } from "@/lib/actions";
+import { Star, MessageSquare, Phone, Mail, Send } from "lucide-react";
+import type { Pin, Testimonial } from "@/lib/db";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const [pins, testimonials] = await Promise.all([getPinsFn(), getTestimonialsFn()]);
+    return { pins, testimonials };
+  },
   head: () => ({
     meta: [
       { title: "NVision — Presentation & Branding Co." },
@@ -34,22 +39,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type Pin = {
-  name: string;
-  cat: string;
-  thumb: string;
-  pdf?: string;
-};
-
-const pins: Pin[] = [
-  { name: "Ride Smart. Ride Electric.", cat: "Pitch Deck", thumb: rideElectric, pdf: "/work/ride-electric.pdf" },
-  { name: "Wellness Spa", cat: "Brand Presentation", thumb: spa, pdf: "/work/spa.pdf" },
-  { name: "Marriott's Strategy", cat: "Corporate Deck", thumb: marriotts, pdf: "/work/marriotts.pdf" },
-  { name: "Ride Smart. Ride Electric.", cat: "Cover", thumb: rideElectric, pdf: "/work/ride-electric.pdf" },
-  { name: "Wellness Spa", cat: "Layouts", thumb: spa, pdf: "/work/spa.pdf" },
-  { name: "Marriott's Strategy", cat: "Layouts", thumb: marriotts, pdf: "/work/marriotts.pdf" },
-];
-
 const services = [
   { n: "01", name: "Presentation Slide Designs", desc: "Custom decks for investor pitches, product launches and brand storytelling. Every slide crafted to hold attention." },
   { n: "02", name: "Advertisement Templates", desc: "High-converting ad creatives for digital and print campaigns that communicate offers in seconds." },
@@ -60,9 +49,11 @@ const services = [
 ];
 
 function Index() {
+  const { pins, testimonials } = Route.useLoaderData();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activePin, setActivePin] = useState<Pin | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const cursorRef = useRef<HTMLDivElement>(null);
   const cursorFRef = useRef<HTMLDivElement>(null);
 
@@ -82,7 +73,7 @@ function Index() {
     return () => io.disconnect();
   }, []);
 
-  // Custom trailing cursor — desktop / fine-pointer only
+  // Custom trailing cursor
   useEffect(() => {
     if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     document.documentElement.classList.add("has-cursor");
@@ -119,7 +110,6 @@ function Index() {
     };
   }, []);
 
-
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
   }, [menuOpen]);
@@ -127,8 +117,9 @@ function Index() {
   const navLinks = [
     { href: "#services", label: "Services" },
     { href: "#work", label: "Work" },
-    { href: "#process", label: "Process" },
+    { href: "#testimonials", label: "Reviews" },
     { href: "#about", label: "About" },
+    { href: "#contact", label: "Contact" },
   ];
 
   const close = () => setMenuOpen(false);
@@ -329,8 +320,8 @@ function Index() {
             All projects →
           </a>
         </div>
-        <div className="[column-count:1] sm:[column-count:2] lg:[column-count:3] xl:[column-count:4] [column-gap:12px]">
-          {pins.map((p, i) => (
+        <div className="[column-count:2] lg:[column-count:3] xl:[column-count:4] [column-gap:12px]">
+          {pins.map((p: Pin, i: number) => (
             <button
               key={i}
               type="button"
@@ -338,7 +329,7 @@ function Index() {
               className="group relative block w-full text-left break-inside-avoid mb-3 overflow-hidden rounded-sm bg-surface-2"
             >
               <img
-                src={p.thumb}
+                src={p.thumb_path}
                 alt={p.name}
                 loading="lazy"
                 decoding="async"
@@ -353,8 +344,51 @@ function Index() {
         </div>
       </section>
 
+      {/* TESTIMONIALS (Conditional) */}
+      {testimonials.length > 0 && (
+        <section className="py-24 px-[5vw] bg-surface-1 overflow-hidden">
+          <div className="flex flex-wrap justify-between items-end gap-5 mb-16 reveal">
+            <div>
+              <p className="text-[11px] tracking-[0.3em] uppercase text-gold mb-3">Client Stories</p>
+              <h2 className="font-serif font-light leading-[1.05] text-warm" style={{ fontSize: "clamp(32px,5vw,62px)" }}>
+                What They <em className="text-gold">Say</em>
+              </h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {testimonials.map((t: Testimonial, i: number) => (
+              <div 
+                key={t.id} 
+                className="bg-surface-2 p-8 border border-gold/10 relative reveal"
+                style={{ transitionDelay: `${i * 0.1}s` }}
+              >
+                <span className="text-gold/20 text-6xl font-serif absolute top-4 right-6 italic">"</span>
+                <p className="text-sm leading-[1.8] text-warm/60 mb-8 relative z-10 italic">
+                  {t.content}
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-gold/10 overflow-hidden border border-gold/20">
+                    {t.avatar_path ? (
+                      <img src={t.avatar_path} className="w-full h-full object-cover" alt={t.name} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gold font-serif text-lg">
+                        {t.name[0]}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-warm font-serif text-lg leading-none mb-1">{t.name}</div>
+                    <div className="text-[10px] tracking-widest uppercase text-gold/60">{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* PROCESS */}
-      <section id="process" className="py-24 px-[5vw] bg-surface-1">
+      <section id="process" className="py-24 px-[5vw] bg-background">
         <div className="reveal">
           <p className="text-[11px] tracking-[0.3em] uppercase text-gold mb-3">How We Work</p>
           <h2 className="font-serif font-light leading-[1.05] text-warm mb-16" style={{ fontSize: "clamp(32px,5vw,62px)" }}>
@@ -386,10 +420,52 @@ function Index() {
         </div>
       </section>
 
+      {/* TESTIMONIALS */}
+      <section id="testimonials" className="py-24 px-[5vw] bg-background relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gold/5 blur-[100px] -translate-y-1/2 translate-x-1/2 rounded-full" />
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 reveal">
+          <div>
+            <p className="text-[11px] tracking-[0.3em] uppercase text-gold mb-3">Testimonials</p>
+            <h2 className="font-serif font-light text-warm leading-tight" style={{ fontSize: "clamp(32px, 5vw, 52px)" }}>
+              Client Stories.
+            </h2>
+          </div>
+          <p className="text-[13px] text-warm/40 mt-5 md:mt-0 max-w-sm">
+            Hear from the founders and brand managers we've helped standout with strategic design.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {testimonials.map((t: Testimonial) => (
+            <div key={t.id} className="bg-surface-2 p-8 sm:p-10 border border-gold/10 hover:border-gold/30 transition-all reveal group">
+              <div className="flex gap-1 mb-6 text-gold/40 group-hover:text-gold transition-colors">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className={`w-3.5 h-3.5 ${i < (t.rating || 5) ? 'fill-current' : 'opacity-20'}`} />
+                ))}
+              </div>
+              <p className="text-warm/60 text-sm leading-[1.8] mb-8 font-light italic">"{t.content}"</p>
+              <div className="flex items-center gap-4">
+                {t.avatar_path ? (
+                  <img src={t.avatar_path} alt={t.name} className="w-12 h-12 rounded-full border border-gold/20 object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gold/5 border border-gold/20 flex items-center justify-center text-gold font-serif text-lg">
+                    {t.name.charAt(0)}
+                  </div>
+                )}
+                <div>
+                  <div className="text-warm font-serif text-lg leading-none mb-1.5">{t.name}</div>
+                  <div className="text-[10px] tracking-[0.15em] uppercase text-warm/30">{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ABOUT */}
       <section
         id="about"
-        className="py-24 px-[5vw] bg-background grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-center"
+        className="py-24 px-[5vw] bg-surface-1 grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-center"
       >
         <div className="bg-surface-2 border border-gold/15 p-10 sm:p-11 relative reveal">
           <span className="absolute -top-px left-9 right-9 h-0.5 bg-[linear-gradient(90deg,transparent,var(--gold),transparent)]" />
@@ -453,35 +529,106 @@ function Index() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section id="contact" className="relative overflow-hidden py-28 px-[5vw] bg-surface-1 text-center">
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
-          style={{ background: "radial-gradient(circle, oklch(0.76 0.09 80 / 0.06) 0%, transparent 70%)" }}
-        />
-        <p className="relative text-[11px] tracking-[0.3em] uppercase text-gold mb-7 reveal">Ready When You Are</p>
-        <h2
-          className="relative font-serif font-light leading-[0.95] text-warm mb-5 reveal"
-          style={{ fontSize: "clamp(40px,8vw,100px)" }}
-        >
-          Let's get
-          <br />
-          <em className="text-gold">started.</em>
-        </h2>
-        <a
-          href="mailto:workwithnvision@gmail.com"
-          className="relative font-serif font-light text-warm/40 hover:text-gold transition-colors block mb-10 reveal break-all"
-          style={{ fontSize: "clamp(18px,3vw,30px)" }}
-        >
-          workwithnvision@gmail.com
-        </a>
-        <div className="reveal relative">
-          <a
-            href="mailto:workwithnvision@gmail.com"
-            className="inline-block bg-gold text-background text-[11px] font-medium tracking-[0.15em] uppercase px-8 py-3.5 hover:bg-gold-light transition-colors"
-          >
-            Email Us
-          </a>
+      {/* CONTACT & FEEDBACK */}
+      <section id="contact" className="py-24 px-[5vw] bg-surface-1 relative overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-20 items-start">
+          <div className="reveal">
+            <p className="text-[11px] tracking-[0.3em] uppercase text-gold mb-3">Connect With Us</p>
+            <h2 className="font-serif font-light text-warm leading-[1.1] mb-8" style={{ fontSize: "clamp(32px, 6vw, 72px)" }}>
+              Have a project
+              <br />
+              in <em className="text-gold">mind?</em>
+            </h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-14">
+              <div className="group">
+                <div className="flex items-center gap-3 mb-4">
+                  <Mail className="w-4 h-4 text-gold" />
+                  <span className="text-[10px] tracking-[0.2em] uppercase text-warm/40">Email Us</span>
+                </div>
+                <a href="mailto:workwithnvision@gmail.com" className="font-serif text-2xl text-warm/70 hover:text-gold transition-colors break-all">
+                  workwithnvision@gmail.com
+                </a>
+              </div>
+              <div className="group">
+                <div className="flex items-center gap-3 mb-4">
+                  <Phone className="w-4 h-4 text-gold" />
+                  <span className="text-[10px] tracking-[0.2em] uppercase text-warm/40">Call / WhatsApp</span>
+                </div>
+                <a href="tel:+919324575XXX" className="font-serif text-2xl text-warm/70 hover:text-gold transition-colors">
+                  +91 93245 75XXX
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-16 pt-10 border-t border-gold/10">
+              <p className="text-[13px] text-warm/30 max-w-md leading-[2]">
+                We typically respond within 24 hours. Whether it's a pitch deck audit or a complete brand overhaul, we're here to design ideas that speak.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-surface-2 p-8 sm:p-10 border border-gold/15 relative reveal">
+            <span className="absolute -top-px left-8 right-8 h-px bg-gold/40" />
+            <h3 className="font-serif text-2xl text-warm mb-8">Send Feedback or Query</h3>
+            
+            <form 
+              className="space-y-6"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setIsSubmitting(true);
+                const form = e.target as HTMLFormElement;
+                const fd = new FormData(form);
+                const data = {
+                  name: fd.get("name") as string,
+                  email: fd.get("email") as string,
+                  phone: fd.get("phone") as string,
+                  message: fd.get("message") as string
+                };
+                try {
+                  await sendFeedbackFn({ data });
+                  toast.success("Query Received", {
+                    description: "Thank you! We've received your inquiry and will get back to you shortly.",
+                    className: "bg-surface-2 border-gold/20 text-warm rounded-none font-serif",
+                  });
+                  form.reset();
+                } catch (err) {
+                  toast.error("Message Failed", {
+                    description: "There was an error sending your message. Please try again or email us directly.",
+                  });
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+            >
+              <div>
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-warm/40 mb-2">Full Name</label>
+                <input required name="name" type="text" className="w-full bg-background border border-gold/10 px-4 py-3 text-sm text-warm focus:border-gold outline-none transition-colors" placeholder="John Doe" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-warm/40 mb-2">Email Address</label>
+                  <input required name="email" type="email" className="w-full bg-background border border-gold/10 px-4 py-3 text-sm text-warm focus:border-gold outline-none transition-colors" placeholder="john@example.com" />
+                </div>
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-warm/40 mb-2">Phone (Optional)</label>
+                  <input name="phone" type="tel" className="w-full bg-background border border-gold/10 px-4 py-3 text-sm text-warm focus:border-gold outline-none transition-colors" placeholder="+91 XXX..." />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-warm/40 mb-2">Message / Query</label>
+                <textarea required name="message" rows={4} className="w-full bg-background border border-gold/10 px-4 py-3 text-sm text-warm focus:border-gold outline-none transition-colors resize-none" placeholder="Tell us about your project..."></textarea>
+              </div>
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full bg-gold text-background py-4 flex items-center justify-center gap-3 text-[11px] font-bold tracking-[0.2em] uppercase hover:bg-gold-light transition-all group disabled:opacity-50"
+              >
+                {isSubmitting ? "Sending..." : "Send Message"}
+                <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              </button>
+            </form>
+          </div>
         </div>
       </section>
 
@@ -498,37 +645,15 @@ function Index() {
       </footer>
 
       {/* PDF PREVIEW DIALOG */}
-      <Dialog open={!!activePin} onOpenChange={(o) => !o && setActivePin(null)}>
-        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 bg-background border-gold/20 overflow-hidden flex flex-col">
-          <DialogTitle className="sr-only">{activePin?.name ?? "Project preview"}</DialogTitle>
-          <div className="flex items-center justify-between px-5 py-3 border-b border-gold/15 shrink-0">
-            <div className="min-w-0">
-              <div className="text-[10px] tracking-[0.18em] uppercase text-gold">{activePin?.cat}</div>
-              <div className="font-serif text-lg text-warm truncate">{activePin?.name}</div>
-            </div>
-            {activePin?.pdf && (
-              <a
-                href={activePin.pdf}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 px-3 py-1.5 hover:bg-gold hover:text-background transition-colors shrink-0 ml-3"
-              >
-                Open ↗
-              </a>
-            )}
-          </div>
-          <div className="flex-1 bg-surface-2">
-            {activePin?.pdf && (
-              <iframe
-                key={activePin.pdf}
-                src={`${activePin.pdf}#view=FitH`}
-                title={activePin.name}
-                className="w-full h-full border-0"
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {activePin && (
+        <PdfViewer 
+          url={activePin.pdf_path} 
+          thumbnail={activePin.thumb_path}
+          title={activePin.name} 
+          category={activePin.cat} 
+          onClose={() => setActivePin(null)} 
+        />
+      )}
     </main>
   );
 }
