@@ -204,13 +204,41 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
     }
   };
 
+  const generateThumbnailFromFile = async (file: File) => {
+    toast.loading("Generating preview...", { id: "thumb-gen-local" });
+    try {
+      const pdfjs = await import("pdfjs-dist");
+      pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+      
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      const page = await pdf.getPage(1);
+      
+      const viewport = page.getViewport({ scale: 1.0 });
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      await page.render({ canvasContext: context!, viewport, canvas }).promise;
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+      
+      pinForm.setValue("autoThumb" as any, dataUrl);
+      toast.success("Preview generated", { id: "thumb-gen-local" });
+    } catch (error) {
+      console.error(error);
+      toast.error("Preview failed", { id: "thumb-gen-local" });
+    }
+  };
+
   const regenerateThumbnail = async (pin: Pin) => {
     toast.loading("Generating thumbnail...", { id: "thumb-gen" });
     try {
       const pdfUrl = pin.pdf_path;
       // Load PDF and render first page to canvas
       const pdfjs = await import("pdfjs-dist");
-      pdfjs.GlobalWorkerOptions.workerSrc = "/scripts/pdf.worker.min.mjs";
+      pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
       
       const loadingTask = pdfjs.getDocument(pdfUrl);
       const pdf = await loadingTask.promise;
@@ -403,7 +431,11 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                                       ref={field.ref}
                                       onChange={(e) => {
                                         const file = e.target.files?.[0];
-                                        if (file) onChange(file);
+                                        if (file) {
+                                          onChange(file);
+                                          // Automatically generate thumbnail from PDF
+                                          generateThumbnailFromFile(file);
+                                        }
                                       }}
                                     />
                                     <div className="flex flex-col items-center gap-2 pointer-events-none">
