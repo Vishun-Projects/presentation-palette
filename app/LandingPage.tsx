@@ -98,11 +98,10 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
 
       {/* NAV */}
       <nav
-        className={`fixed top-0 inset-x-0 z-50 flex items-center justify-between px-[5vw] transition-all duration-300 ${
-          scrolled
+        className={`fixed top-0 inset-x-0 z-50 flex items-center justify-between px-[5vw] transition-all duration-300 ${scrolled
             ? "py-3 bg-background/95 backdrop-blur-md border-b border-gold/10"
             : "py-4 sm:py-5"
-        }`}
+          }`}
       >
         <a href="#home" className="flex items-center" onClick={close}>
           <img src="/nvision-logo.png" alt="NVision" className="h-9 sm:h-11 w-auto" />
@@ -324,8 +323,8 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {testimonials.map((t: Testimonial, i: number) => (
-              <div 
-                key={t.id} 
+              <div
+                key={t.id}
                 className="bg-surface-2 p-8 border border-gold/10 relative reveal"
                 style={{ transitionDelay: `${i * 0.1}s` }}
               >
@@ -506,7 +505,7 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
               <br />
               in <em className="text-gold">mind?</em>
             </h2>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-14">
               <div className="group">
                 <div className="flex items-center gap-3 mb-4">
@@ -538,8 +537,8 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
           <div className="bg-surface-2 p-8 sm:p-10 border border-gold/15 relative reveal">
             <span className="absolute -top-px left-8 right-8 h-px bg-gold/40" />
             <h3 className="font-serif text-2xl text-warm mb-8">Send Feedback or Query</h3>
-            
-            <form 
+
+            <form
               className="space-y-6"
               onSubmit={async (e) => {
                 e.preventDefault();
@@ -586,8 +585,8 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
                 <label className="block text-[10px] tracking-[0.2em] uppercase text-warm/40 mb-2">Message / Query</label>
                 <textarea required name="message" rows={4} className="w-full bg-background border border-gold/10 px-4 py-3 text-sm text-warm focus:border-gold outline-none transition-colors resize-none" placeholder="Tell us about your project..."></textarea>
               </div>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isSubmitting}
                 className="w-full bg-gold text-background py-4 flex items-center justify-center gap-3 text-[11px] font-bold tracking-[0.2em] uppercase hover:bg-gold-light transition-all group disabled:opacity-50"
               >
@@ -613,12 +612,12 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
 
       {/* PDF PREVIEW DIALOG */}
       {activePin && (
-        <PdfViewer 
-          url={activePin.pdf_path} 
+        <PdfViewer
+          url={activePin.pdf_path}
           thumbnail={activePin.thumb_path}
-          title={activePin.name} 
-          category={activePin.cat} 
-          onClose={() => setActivePin(null)} 
+          title={activePin.name}
+          category={activePin.cat}
+          onClose={() => setActivePin(null)}
         />
       )}
     </main>
