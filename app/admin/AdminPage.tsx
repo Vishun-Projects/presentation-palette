@@ -165,7 +165,7 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
       formData.append("rating", values.rating);
       if (editingItem) formData.append("id", editingItem.id);
       
-      const avatarFile = (document.getElementById("avatar-upload") as HTMLInputElement).files?.[0];
+      const avatarFile = values.avatar;
       if (avatarFile) formData.append("avatar", avatarFile);
 
       if (editingItem) {
@@ -426,7 +426,35 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                         <FormField control={testimonialForm.control} name="content" render={({ field }) => (
                           <FormItem><FormLabel className="text-zinc-400 text-xs uppercase tracking-wider">Content</FormLabel><FormControl><Textarea {...field} className="bg-zinc-900 border-zinc-800 min-h-[100px] focus:ring-white" /></FormControl></FormItem>
                         )} />
-                        <div className="space-y-2"><Label className="text-zinc-400 text-xs uppercase tracking-wider">Avatar</Label><Input id="avatar-upload" type="file" className="bg-zinc-900 border-zinc-800 cursor-pointer file:text-zinc-400" /></div>
+                        <FormField
+                          control={testimonialForm.control}
+                          name="avatar"
+                          render={({ field: { value, onChange, ...field } }) => (
+                            <FormItem>
+                              <FormLabel className="text-zinc-400 text-xs uppercase tracking-wider">Avatar</FormLabel>
+                              <FormControl>
+                                <div className="relative group cursor-pointer border border-dashed border-zinc-800 rounded-lg p-3 hover:border-white/50 transition-colors bg-zinc-900/50">
+                                  <Input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) onChange(file);
+                                    }}
+                                    {...field}
+                                  />
+                                  <div className="flex flex-col items-center gap-1 pointer-events-none">
+                                    <Camera className="w-4 h-4 text-zinc-600 group-hover:text-white transition-colors" />
+                                    <span className="text-[10px] text-zinc-500 truncate max-w-full">
+                                      {value instanceof File ? value.name : value ? "Current Avatar" : "Select Image"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
                         <DialogFooter><Button type="submit" disabled={isSubmitting} className="w-full bg-white text-black hover:bg-zinc-200">Save Review</Button></DialogFooter>
                       </form>
                     </Form>
