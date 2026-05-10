@@ -245,9 +245,9 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
         {/* PDF Content Area */}
         <div 
           ref={scrollContainerRef} 
-          className="flex-1 bg-black overflow-hidden flex justify-center items-center relative py-6 px-4"
+          className="flex-1 bg-black overflow-auto scrollbar-hide flex justify-center items-start relative py-6 px-4"
         >
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="flex items-center justify-center min-w-full">
             <Document 
               file={url} 
               onLoadSuccess={onDocumentLoadSuccess} 
@@ -256,11 +256,10 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
               <div className="relative shadow-2xl transition-opacity duration-300 flex items-center justify-center">
                 <Page 
                   pageNumber={pageNumber} 
-                  width={containerWidth ? Math.min(containerWidth * 0.9, 1200) : 800}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   loading={<div className="h-[600px] w-full flex items-center justify-center text-gold/20 animate-pulse font-serif italic text-lg">NVISION...</div>}
-                  className="max-w-full h-auto"
+                  className="shadow-2xl"
                 />
               </div>
             </Document>
