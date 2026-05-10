@@ -20,19 +20,24 @@ export async function getFeedbackFn() {
 export async function addPinFn(formData: FormData) {
   const name = formData.get("name") as string;
   const cat = formData.get("cat") as string;
-  const pdf = formData.get("pdf") as File;
+  const pdf = formData.get("pdf") as File | null;
+  const pdfUrl = formData.get("pdfUrl") as string | null;
   const thumb = formData.get("thumb") as File | null;
+  const thumbUrl = formData.get("thumbUrl") as string | null;
 
-  if (!pdf) throw new Error("PDF is required");
+  if (!pdf && !pdfUrl) throw new Error("PDF is required");
 
-  const pdfBuffer = Buffer.from(await pdf.arrayBuffer());
-  const pdfPath = await saveFile(pdfBuffer, pdf.name, "work");
+  let pdfPath = pdfUrl || "";
+  if (pdf && pdf.size > 0 && !pdfUrl) {
+    const pdfBuffer = Buffer.from(await pdf.arrayBuffer());
+    pdfPath = await saveFile(pdfBuffer, pdf.name, "work");
+  }
 
-  let thumbPath = "";
-  if (thumb && thumb.size > 0) {
+  let thumbPath = thumbUrl || "";
+  if (thumb && thumb.size > 0 && !thumbUrl) {
     const thumbBuffer = Buffer.from(await thumb.arrayBuffer());
     thumbPath = await saveFile(thumbBuffer, thumb.name, "thumbs");
-  } else {
+  } else if (!thumbUrl) {
     const autoThumbBase64 = formData.get("autoThumb") as string;
     if (autoThumbBase64) {
       const base64Data = autoThumbBase64.replace(/^data:image\/\w+;base64,/, "");
@@ -61,16 +66,22 @@ export async function updatePinFn(formData: FormData) {
   const name = formData.get("name") as string;
   const cat = formData.get("cat") as string;
   const pdf = formData.get("pdf") as File | null;
+  const pdfUrl = formData.get("pdfUrl") as string | null;
   const thumb = formData.get("thumb") as File | null;
+  const thumbUrl = formData.get("thumbUrl") as string | null;
 
   const updates: any = { id, name, cat };
 
-  if (pdf && pdf.size > 0) {
+  if (pdfUrl) {
+    updates.pdf_path = pdfUrl;
+  } else if (pdf && pdf.size > 0) {
     const pdfBuffer = Buffer.from(await pdf.arrayBuffer());
     updates.pdf_path = await saveFile(pdfBuffer, pdf.name, "work");
   }
 
-  if (thumb && thumb.size > 0) {
+  if (thumbUrl) {
+    updates.thumb_path = thumbUrl;
+  } else if (thumb && thumb.size > 0) {
     const thumbBuffer = Buffer.from(await thumb.arrayBuffer());
     updates.thumb_path = await saveFile(thumbBuffer, thumb.name, "thumbs");
   } else {

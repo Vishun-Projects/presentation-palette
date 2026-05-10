@@ -15,8 +15,9 @@ import {
   ExternalLink,
   ChevronRight
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/src/components/ui/button";
+import { Input } from "@/src/components/ui/input";
+import { upload } from '@vercel/blob/client';
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Form, 
@@ -134,8 +135,24 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
         return;
       }
 
-      if (pdfFile instanceof File) formData.append("pdf", pdfFile);
-      if (thumbFile instanceof File) formData.append("thumb", thumbFile);
+      // Handle big files with client-side upload
+      if (pdfFile instanceof File) {
+        toast.loading("Uploading large PDF...", { id: "upload-status" });
+        const newBlob = await upload(pdfFile.name, pdfFile, {
+          access: 'public',
+          handleUploadUrl: '/api/upload',
+        });
+        formData.append("pdfUrl", newBlob.url);
+        toast.success("PDF uploaded", { id: "upload-status" });
+      }
+
+      if (thumbFile instanceof File) {
+        const newBlob = await upload(thumbFile.name, thumbFile, {
+          access: 'public',
+          handleUploadUrl: '/api/upload',
+        });
+        formData.append("thumbUrl", newBlob.url);
+      }
 
       if (editingItem) {
         await updatePinFn(formData);
