@@ -17,17 +17,20 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "NVISION - Premium Presentation Palette",
+  title: "NVISION",
   description: "NVision specializes in creating high-impact pitch decks and corporate presentations that win investors and close deals.",
+  icons: {
+    icon: "/nvision-logo.png",
+  },
   authors: [{ name: "NVISION" }],
   openGraph: {
-    title: "NVISION - Premium Presentation Palette",
+    title: "NVISION",
     description: "NVision specializes in creating high-impact pitch decks and corporate presentations that win investors and close deals.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NVISION - Premium Presentation Palette",
+    title: "NVISION",
     description: "NVision specializes in creating high-impact pitch decks and corporate presentations that win investors and close deals.",
   },
 };
