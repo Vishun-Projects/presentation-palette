@@ -254,14 +254,14 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
               loading={<div className="flex flex-col items-center gap-4"><div className="w-8 h-8 border-2 border-gold/20 border-t-gold rounded-full animate-spin"></div></div>}
               className="max-w-full max-h-full flex items-center justify-center"
             >
-              <div className="relative shadow-2xl transition-opacity duration-300 flex items-center justify-center max-w-full max-h-full">
+              <div className="relative shadow-2xl transition-opacity duration-300 flex items-center justify-center max-w-full max-h-full overflow-hidden">
                 <Page 
                   pageNumber={pageNumber} 
-                  width={1400} // High quality base
+                  width={1400} 
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   loading={<div className="h-[600px] w-full flex items-center justify-center text-gold/20 animate-pulse font-serif italic text-lg">NVISION...</div>}
-                  className="max-w-full max-h-full [&>canvas]:max-w-full [&>canvas]:max-h-full [&>canvas]:h-auto [&>canvas]:w-auto [&>canvas]:object-contain shadow-2xl"
+                  className="max-w-full max-h-full [&>canvas]:!max-w-full [&>canvas]:!max-h-full [&>canvas]:!h-auto [&>canvas]:!w-auto [&>canvas]:object-contain shadow-2xl"
                 />
               </div>
             </Document>
