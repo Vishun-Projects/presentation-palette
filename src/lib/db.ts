@@ -6,7 +6,12 @@ let _db: Database.Database | null = null;
 const initDb = () => {
   if (_db) return _db;
   
-  const dbPath = join(process.cwd(), "db.sqlite");
+  // On Vercel (production), the root directory is read-only. 
+  // We use /tmp which is writable.
+  const dbPath = process.env.NODE_ENV === "production" 
+    ? join("/tmp", "db.sqlite") 
+    : join(process.cwd(), "db.sqlite");
+    
   const db = new Database(dbPath);
   
   db.exec(`
