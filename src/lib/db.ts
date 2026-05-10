@@ -44,29 +44,7 @@ const initDb = () => {
     );
   `);
 
-  // Seed initial data if empty
-  const count = db.prepare("SELECT COUNT(*) as count FROM pins").get() as { count: number };
-  if (count.count === 0) {
-    const initialPins = [
-      { id: "1", name: "Ride Smart. Ride Electric.", cat: "Pitch Deck", pdf_path: "/work/ride-electric.pdf", thumb_path: "/work/ride-electric.jpg" },
-      { id: "2", name: "Wellness Spa", cat: "Brand Presentation", pdf_path: "/work/spa.pdf", thumb_path: "/work/spa.jpg" },
-      { id: "3", name: "Marriott's Strategy", cat: "Corporate Deck", pdf_path: "/work/marriotts.pdf", thumb_path: "/work/marriotts.jpg" },
-    ];
-
-    const insert = db.prepare("INSERT INTO pins (id, name, cat, pdf_path, thumb_path) VALUES (?, ?, ?, ?, ?)");
-    initialPins.forEach(p => insert.run(p.id, p.name, p.cat, p.pdf_path, p.thumb_path));
-  }
-
-  const tCount = db.prepare("SELECT COUNT(*) as count FROM testimonials").get() as { count: number };
-  if (tCount.count === 0) {
-    const initialTestimonials = [
-      { id: "1", name: "Alex Rivera", role: "CEO, TechFlow", content: "NVision completely transformed our investor deck. The visuals were stunning and we closed our seed round in record time.", rating: 5 },
-      { id: "2", name: "Sarah Chen", role: "Marketing Director, Aura", content: "The level of detail and understanding of our brand was impressive. Highly recommend for any high-stakes presentation.", rating: 5 },
-    ];
-    const insertT = db.prepare("INSERT INTO testimonials (id, name, role, content, rating) VALUES (?, ?, ?, ?, ?)");
-    initialTestimonials.forEach(t => insertT.run(t.id, t.name, t.role, t.content, t.rating));
-  }
-
+  // No initial seeding - user will manage data via admin panel
   _db = db;
   return db;
 };

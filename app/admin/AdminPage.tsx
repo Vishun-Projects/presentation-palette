@@ -198,6 +198,7 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                   <DialogContent className="bg-zinc-950 border-zinc-800 text-white animate-none duration-0">
                     <DialogHeader>
                       <DialogTitle className="text-lg font-bold tracking-tight">New Project</DialogTitle>
+                      <DialogDescription className="text-zinc-500 text-xs">Enter details and upload files for your new portfolio item.</DialogDescription>
                     </DialogHeader>
                     <Form {...pinForm}>
                       <form onSubmit={pinForm.handleSubmit(onPinSubmit)} className="space-y-4 pt-2">
@@ -226,7 +227,10 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="bg-zinc-950 border-zinc-800 text-white animate-none duration-0">
-                    <DialogHeader><DialogTitle className="text-lg font-bold tracking-tight">New Review</DialogTitle></DialogHeader>
+                    <DialogHeader>
+                      <DialogTitle className="text-lg font-bold tracking-tight">New Review</DialogTitle>
+                      <DialogDescription className="text-zinc-500 text-xs">Add a new client testimonial to your showcase.</DialogDescription>
+                    </DialogHeader>
                     <Form {...testimonialForm}>
                       <form onSubmit={testimonialForm.handleSubmit(onTestimonialSubmit)} className="space-y-4 pt-2">
                         <div className="grid grid-cols-2 gap-4">
