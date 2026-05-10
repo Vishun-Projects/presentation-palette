@@ -192,7 +192,7 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
       const pdfUrl = pin.pdf_path;
       // Load PDF and render first page to canvas
       const pdfjs = await import("pdfjs-dist");
-      pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+      pdfjs.GlobalWorkerOptions.workerSrc = "/scripts/pdf.worker.min.mjs";
       
       const loadingTask = pdfjs.getDocument(pdfUrl);
       const pdf = await loadingTask.promise;

@@ -36,7 +36,7 @@ export function PdfViewer(props: PdfViewerProps) {
       Document = rp.Document;
       Page = rp.Page;
       pdfjs = rp.pdfjs;
-      pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+      pdfjs.GlobalWorkerOptions.workerSrc = "/scripts/pdf.worker.min.mjs";
       setIsReady(true);
     };
     loadPdf();
