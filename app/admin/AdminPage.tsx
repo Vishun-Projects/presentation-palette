@@ -186,6 +186,41 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
     }
   };
 
+  const regenerateThumbnail = async (pin: Pin) => {
+    toast.loading("Generating thumbnail...", { id: "thumb-gen" });
+    try {
+      const pdfUrl = pin.pdf_path;
+      // Load PDF and render first page to canvas
+      const pdfjs = await import("pdfjs-dist");
+      pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+      
+      const loadingTask = pdfjs.getDocument(pdfUrl);
+      const pdf = await loadingTask.promise;
+      const page = await pdf.getPage(1);
+      
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      await page.render({ canvasContext: context!, viewport }).promise;
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+      
+      const formData = new FormData();
+      formData.append("id", pin.id);
+      formData.append("name", pin.name);
+      formData.append("cat", pin.cat);
+      formData.append("autoThumb", dataUrl);
+      
+      await updatePinFn(formData);
+      toast.success("Thumbnail regenerated", { id: "thumb-gen" });
+    } catch (error) {
+      console.error(error);
+      toast.error("Generation failed", { id: "thumb-gen" });
+    }
+  };
+
   const executeDelete = async (id: string, type: 'pin' | 'testimonial' | 'feedback') => {
     try {
       if (type === 'pin') await deletePinFn(id);
@@ -287,7 +322,13 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
             
             <div className="flex items-center">
               <TabsContent value="projects" className="m-0">
-                <Dialog open={isAddProjectOpen} onOpenChange={setIsAddProjectOpen}>
+                <Dialog open={isAddProjectOpen} onOpenChange={(open) => {
+                  if (open && !editingItem) {
+                    pinForm.reset({ name: "", cat: "", pdf: undefined, thumb: undefined });
+                  }
+                  if (!open) setEditingItem(null);
+                  setIsAddProjectOpen(open);
+                }}>
                   <DialogTrigger asChild>
                     <Button size="sm" className="bg-white text-black hover:bg-zinc-200 rounded-none px-6 font-bold uppercase text-[10px] tracking-widest">
                       <Plus className="w-3.5 h-3.5 mr-2" />
@@ -398,7 +439,13 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                 </Dialog>
               </TabsContent>
               <TabsContent value="testimonials" className="m-0">
-                <Dialog open={isAddTestimonialOpen} onOpenChange={setIsAddTestimonialOpen}>
+                <Dialog open={isAddTestimonialOpen} onOpenChange={(open) => {
+                  if (open && !editingItem) {
+                    testimonialForm.reset({ name: "", role: "", content: "", rating: "5", avatar: undefined });
+                  }
+                  if (!open) setEditingItem(null);
+                  setIsAddTestimonialOpen(open);
+                }}>
                   <DialogTrigger asChild>
                     <Button size="sm" className="bg-white text-black hover:bg-zinc-200 rounded-none px-6 font-bold uppercase text-[10px] tracking-widest">
                       <Plus className="w-3.5 h-3.5 mr-2" />
@@ -484,10 +531,24 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                         <Button 
                           variant="ghost" 
                           size="icon" 
+                          className="text-zinc-500 hover:text-amber-500 hover:bg-amber-500/10"
+                          title="Regenerate Thumbnail"
+                          onClick={() => regenerateThumbnail(p)}
+                        >
+                          <Camera className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
                           className="text-zinc-500 hover:text-white hover:bg-zinc-800"
                           onClick={() => {
                             setEditingItem(p);
-                            pinForm.reset({ name: p.name, cat: p.cat });
+                            pinForm.reset({ 
+                              name: p.name, 
+                              cat: p.cat,
+                              pdf: p.pdf_path,
+                              thumb: p.thumb_path
+                            });
                             setIsAddProjectOpen(true);
                           }}
                         >
