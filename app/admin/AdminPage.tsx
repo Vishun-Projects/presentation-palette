@@ -59,13 +59,18 @@ import {
   addTestimonialFn, 
   deleteTestimonialFn,
   deleteFeedbackFn,
+  updatePinFn,
+  updateTestimonialFn
 } from "@/app/actions";
 import { toast } from "sonner";
 import type { Pin, Testimonial, Feedback } from "@/src/lib/db";
+import { Camera, FileText, Edit, LogOut } from "lucide-react";
 
 const pinSchema = z.object({
   name: z.string().min(1, "Name is required"),
   cat: z.string().min(1, "Category is required"),
+  pdf: z.any().optional(),
+  thumb: z.any().optional(),
 });
 
 const testimonialSchema = z.object({
@@ -73,6 +78,7 @@ const testimonialSchema = z.object({
   role: z.string().min(1, "Role is required"),
   content: z.string().min(1, "Content is required"),
   rating: z.string(),
+  avatar: z.any().optional(),
 });
 
 export default function AdminPage({ initialPins, initialTestimonials, initialFeedbacks }: { 
@@ -80,18 +86,35 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
   initialTestimonials: Testimonial[], 
   initialFeedbacks: Feedback[] 
 }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [isAddTestimonialOpen, setIsAddTestimonialOpen] = useState(false);
+  
+  const [editingItem, setEditingItem] = useState<any>(null);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loginEmail === "nvision@admin.com" && loginPassword === "NehaVishal@123") {
+      setIsAuthenticated(true);
+      setLoginError("");
+    } else {
+      setLoginError("Invalid credentials.");
+    }
+  };
 
   const pinForm = useForm<z.infer<typeof pinSchema>>({
     resolver: zodResolver(pinSchema),
-    defaultValues: { name: "", cat: "" },
+    defaultValues: { name: "", cat: "", pdf: undefined, thumb: undefined },
   });
 
   const testimonialForm = useForm<z.infer<typeof testimonialSchema>>({
     resolver: zodResolver(testimonialSchema),
-    defaultValues: { name: "", role: "", content: "", rating: "5" },
+    defaultValues: { name: "", role: "", content: "", rating: "5", avatar: undefined },
   });
 
   const onPinSubmit = async (values: z.infer<typeof pinSchema>) => {
@@ -100,22 +123,30 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
       const formData = new FormData();
       formData.append("name", values.name);
       formData.append("cat", values.cat);
+      if (editingItem) formData.append("id", editingItem.id);
       
       const pdfFile = (document.getElementById("pdf-upload") as HTMLInputElement).files?.[0];
       const thumbFile = (document.getElementById("thumb-upload") as HTMLInputElement).files?.[0];
 
-      if (!pdfFile) {
+      if (!pdfFile && !editingItem) {
         toast.error("PDF file required");
         setIsSubmitting(false);
         return;
       }
 
-      formData.append("pdf", pdfFile);
+      if (pdfFile) formData.append("pdf", pdfFile);
       if (thumbFile) formData.append("thumb", thumbFile);
 
-      await addPinFn(formData);
-      toast.success("Project saved");
+      if (editingItem) {
+        await updatePinFn(formData);
+        toast.success("Project updated");
+      } else {
+        await addPinFn(formData);
+        toast.success("Project created");
+      }
+      
       pinForm.reset();
+      setEditingItem(null);
       setIsAddProjectOpen(false);
     } catch (error) {
       toast.error("Save failed");
@@ -132,13 +163,21 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
       formData.append("role", values.role);
       formData.append("content", values.content);
       formData.append("rating", values.rating);
+      if (editingItem) formData.append("id", editingItem.id);
       
       const avatarFile = (document.getElementById("avatar-upload") as HTMLInputElement).files?.[0];
       if (avatarFile) formData.append("avatar", avatarFile);
 
-      await addTestimonialFn(formData);
-      toast.success("Review saved");
+      if (editingItem) {
+        await updateTestimonialFn(formData);
+        toast.success("Review updated");
+      } else {
+        await addTestimonialFn(formData);
+        toast.success("Review created");
+      }
+      
       testimonialForm.reset();
+      setEditingItem(null);
       setIsAddTestimonialOpen(false);
     } catch (error) {
       toast.error("Save failed");
@@ -156,9 +195,63 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
       toast.success("Deleted");
     } catch (error) {
       toast.error("Delete failed");
-      console.error(error);
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-6 font-sans">
+        <div className="w-full max-w-sm space-y-10 animate-scaleIn">
+          <div className="text-center space-y-4">
+            <img src="/nvision-logo.png" alt="NVision" className="h-10 w-auto mx-auto brightness-125" />
+            <div className="space-y-1">
+              <h1 className="text-xl font-bold tracking-tight text-white uppercase tracking-[0.2em]">Private Console</h1>
+              <p className="text-zinc-500 text-[10px] uppercase tracking-widest">Identity verification required</p>
+            </div>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[9px] uppercase tracking-[0.2em] text-zinc-500 font-bold ml-1">Email</label>
+                <Input 
+                  type="email" 
+                  value={loginEmail} 
+                  onChange={(e) => setLoginEmail(e.target.value)} 
+                  className="bg-zinc-900/50 border-zinc-800 h-12 focus:border-white transition-all rounded-none text-xs"
+                  placeholder="admin@nvision.com"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[9px] uppercase tracking-[0.2em] text-zinc-500 font-bold ml-1">Password</label>
+                <Input 
+                  type="password" 
+                  value={loginPassword} 
+                  onChange={(e) => setLoginPassword(e.target.value)} 
+                  className="bg-zinc-900/50 border-zinc-800 h-12 focus:border-white transition-all rounded-none text-xs"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+              {loginError && (
+                <p className="text-red-500 text-[10px] font-bold text-center uppercase tracking-widest animate-pulse">{loginError}</p>
+              )}
+            </div>
+            <Button type="submit" className="w-full h-12 bg-white text-black hover:bg-zinc-200 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none shadow-2xl">
+              Access Dashboard
+            </Button>
+          </form>
+          
+          <div className="text-center">
+            <button className="text-zinc-600 text-[9px] uppercase tracking-widest hover:text-white transition-colors" onClick={() => window.location.href = "/"}>
+              Return to Gallery
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#09090b] font-sans text-zinc-100">
@@ -169,12 +262,18 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
           <div className="h-4 w-px bg-zinc-800" />
           <span className="font-semibold text-xs tracking-widest text-zinc-500 uppercase">Admin Console</span>
         </div>
-        <Button variant="outline" size="sm" asChild className="border-zinc-800 hover:bg-zinc-900 text-zinc-400 hover:text-white">
-          <a href="/" target="_blank" className="flex items-center gap-2">
-            <ExternalLink className="w-3.5 h-3.5" />
-            Live Site
-          </a>
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" asChild className="border-zinc-800 hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-none h-9">
+            <a href="/" target="_blank" className="flex items-center gap-2">
+              <ExternalLink className="w-3.5 h-3.5" />
+              Live Site
+            </a>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setIsAuthenticated(false)} className="text-zinc-500 hover:text-red-400 rounded-none h-9 px-4">
+            <LogOut className="w-3.5 h-3.5 mr-2" />
+            Exit
+          </Button>
+        </div>
       </header>
 
       <main className="max-w-6xl mx-auto p-6 md:p-10">
@@ -249,7 +348,7 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                                     <div className="flex flex-col items-center gap-2 pointer-events-none">
                                       <FileText className="w-6 h-6 text-zinc-600 group-hover:text-white transition-colors" />
                                       <span className="text-[10px] text-zinc-500 truncate max-w-full">
-                                        {value ? value.name : "Select PDF"}
+                                        {value instanceof File ? value.name : value ? "Current PDF" : "Select PDF"}
                                       </span>
                                     </div>
                                   </div>
@@ -279,7 +378,7 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                                     <div className="flex flex-col items-center gap-2 pointer-events-none">
                                       <Camera className="w-6 h-6 text-zinc-600 group-hover:text-white transition-colors" />
                                       <span className="text-[10px] text-zinc-500 truncate max-w-full">
-                                        {value ? value.name : "Select Image"}
+                                        {value instanceof File ? value.name : value ? "Current Thumb" : "Select Image"}
                                       </span>
                                     </div>
                                   </div>
@@ -350,10 +449,22 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
                   {initialPins.map((p) => (
-                    <tr key={p.id} className="hover:bg-zinc-900/30 transition-colors">
+                    <tr key={p.id} className="hover:bg-zinc-900/30 transition-colors group">
                       <td className="px-6 py-4 font-medium text-zinc-200">{p.name}</td>
                       <td className="px-6 py-4 text-zinc-500">{p.cat}</td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right flex items-center justify-end gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-zinc-500 hover:text-white hover:bg-zinc-800"
+                          onClick={() => {
+                            setEditingItem(p);
+                            pinForm.reset({ name: p.name, cat: p.cat });
+                            setIsAddProjectOpen(true);
+                          }}
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="icon" className="text-zinc-600 hover:text-red-500 hover:bg-red-500/10">
