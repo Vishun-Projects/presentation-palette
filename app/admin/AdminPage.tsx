@@ -197,22 +197,102 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                   </DialogTrigger>
                   <DialogContent className="bg-zinc-950 border-zinc-800 text-white animate-none duration-0">
                     <DialogHeader>
-                      <DialogTitle className="text-lg font-bold tracking-tight">New Project</DialogTitle>
-                      <DialogDescription className="text-zinc-500 text-xs">Enter details and upload files for your new portfolio item.</DialogDescription>
+                      <DialogTitle className="text-lg font-bold tracking-tight">Project Details</DialogTitle>
+                      <DialogDescription className="text-zinc-500 text-xs">Enter details and upload files for your portfolio item.</DialogDescription>
                     </DialogHeader>
                     <Form {...pinForm}>
                       <form onSubmit={pinForm.handleSubmit(onPinSubmit)} className="space-y-4 pt-2">
-                        <FormField control={pinForm.control} name="name" render={({ field }) => (
-                          <FormItem><FormLabel className="text-zinc-400 text-xs uppercase tracking-wider">Name</FormLabel><FormControl><Input {...field} className="bg-zinc-900 border-zinc-800 focus:ring-white" /></FormControl></FormItem>
-                        )} />
-                        <FormField control={pinForm.control} name="cat" render={({ field }) => (
-                          <FormItem><FormLabel className="text-zinc-400 text-xs uppercase tracking-wider">Category</FormLabel><FormControl><Input {...field} className="bg-zinc-900 border-zinc-800 focus:ring-white" /></FormControl></FormItem>
-                        )} />
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2"><Label className="text-zinc-400 text-xs uppercase tracking-wider">PDF</Label><Input id="pdf-upload" type="file" accept=".pdf" className="bg-zinc-900 border-zinc-800 cursor-pointer file:text-zinc-400" /></div>
-                          <div className="space-y-2"><Label className="text-zinc-400 text-xs uppercase tracking-wider">Thumb</Label><Input id="thumb-upload" type="file" accept="image/*" className="bg-zinc-900 border-zinc-800 cursor-pointer file:text-zinc-400" /></div>
+                          <FormField
+                            control={pinForm.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs uppercase tracking-widest text-zinc-500">Project Name</FormLabel>
+                                <FormControl><Input placeholder="e.g. Ride Smart" {...field} className="bg-zinc-900 border-zinc-800" /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={pinForm.control}
+                            name="cat"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs uppercase tracking-widest text-zinc-500">Category</FormLabel>
+                                <FormControl><Input placeholder="e.g. Pitch Deck" {...field} className="bg-zinc-900 border-zinc-800" /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </div>
-                        <DialogFooter><Button type="submit" disabled={isSubmitting} className="w-full bg-white text-black hover:bg-zinc-200">Save Project</Button></DialogFooter>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={pinForm.control}
+                            name="pdf"
+                            render={({ field: { value, onChange, ...field } }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs uppercase tracking-widest text-zinc-500">PDF File</FormLabel>
+                                <FormControl>
+                                  <div className="relative group cursor-pointer border-2 border-dashed border-zinc-800 rounded-lg p-4 hover:border-white/50 transition-colors bg-zinc-900/50">
+                                    <Input 
+                                      type="file" 
+                                      accept=".pdf" 
+                                      className="absolute inset-0 opacity-0 cursor-pointer" 
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) onChange(file);
+                                      }}
+                                      {...field}
+                                    />
+                                    <div className="flex flex-col items-center gap-2 pointer-events-none">
+                                      <FileText className="w-6 h-6 text-zinc-600 group-hover:text-white transition-colors" />
+                                      <span className="text-[10px] text-zinc-500 truncate max-w-full">
+                                        {value ? value.name : "Select PDF"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={pinForm.control}
+                            name="thumb"
+                            render={({ field: { value, onChange, ...field } }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs uppercase tracking-widest text-zinc-500">Thumbnail (Optional)</FormLabel>
+                                <FormControl>
+                                  <div className="relative group cursor-pointer border-2 border-dashed border-zinc-800 rounded-lg p-4 hover:border-white/50 transition-colors bg-zinc-900/50">
+                                    <Input 
+                                      type="file" 
+                                      accept="image/*" 
+                                      className="absolute inset-0 opacity-0 cursor-pointer" 
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) onChange(file);
+                                      }}
+                                      {...field}
+                                    />
+                                    <div className="flex flex-col items-center gap-2 pointer-events-none">
+                                      <Camera className="w-6 h-6 text-zinc-600 group-hover:text-white transition-colors" />
+                                      <span className="text-[10px] text-zinc-500 truncate max-w-full">
+                                        {value ? value.name : "Select Image"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <Button type="submit" disabled={isSubmitting} className="w-full bg-white hover:bg-zinc-200 text-black font-bold uppercase tracking-widest py-6">
+                          {isSubmitting ? "Processing..." : "Save Project"}
+                        </Button>
                       </form>
                     </Form>
                   </DialogContent>

@@ -7,7 +7,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Play,
-  Pause
+  Pause,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { Button } from "./ui/button";
 
@@ -22,6 +24,7 @@ interface PdfViewerProps {
   title: string;
   category: string;
   onClose: () => void;
+  isAdmin?: boolean;
 }
 
 export function PdfViewer(props: PdfViewerProps) {
@@ -50,40 +53,44 @@ export function PdfViewer(props: PdfViewerProps) {
   return <PdfViewerInner {...props} />;
 }
 
-function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
-  const [numPages, setNumPages] = useState<number | null>(null);
+function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerProps) {
+  const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isPaused, setIsPaused] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
   const [progress, setProgress] = useState(0);
-  const isLongPress = useRef(false);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [renderedPages, setRenderedPages] = useState<number>(3);
   
+  const isLongPress = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const lastScrollTime = useRef<number>(0);
   const lastPageChangeTime = useRef<number>(0);
   const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Responsive sizing - ensure full page visibility
   useEffect(() => {
     const updateDimensions = () => {
       if (scrollContainerRef.current) {
-        const vWidth = window.innerWidth;
-        const vHeight = window.innerHeight;
-        
-        // Header (~80px) + Footer (~80px) + Dialog Padding
-        const isDesktop = vWidth >= 640;
-        const availableHeight = isDesktop ? vHeight - 320 : vHeight - 200;
-        const availableWidth = vWidth - (isDesktop ? 240 : 20);
-
-        setDimensions({ width: availableWidth, height: availableHeight });
+        setContainerWidth(scrollContainerRef.current.clientWidth);
       }
     };
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
+
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    setNumPages(numPages);
+  }
+
+  useEffect(() => {
+    if (numPages > 3) {
+      const timer = setTimeout(() => {
+        setRenderedPages(numPages);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [numPages]);
 
   const changePage = useCallback((offset: number) => {
     const now = Date.now();
@@ -99,7 +106,6 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
     setProgress(0);
   }, [numPages]);
 
-  // Timer logic
   useEffect(() => {
     if (isPaused || isHolding || !numPages) return;
     const intervalMs = 30; 
@@ -119,7 +125,6 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
     return () => clearInterval(timer);
   }, [isPaused, isHolding, numPages, changePage]);
 
-  // Input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === "d") changePage(1);
@@ -134,21 +139,6 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [changePage, onClose]);
 
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const now = Date.now();
-      if (now - lastScrollTime.current < 1000) return; 
-      if (Math.abs(e.deltaY) < 30) return; 
-      if (e.deltaY > 0) changePage(1);
-      else changePage(-1);
-      lastScrollTime.current = now;
-    };
-    const container = scrollContainerRef.current;
-    if (container) container.addEventListener('wheel', handleWheel, { passive: false });
-    return () => container?.removeEventListener('wheel', handleWheel);
-  }, [changePage]);
-
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       scrollContainerRef.current?.parentElement?.requestFullscreen().catch(() => {});
@@ -159,7 +149,6 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
     }
   };
 
-  // Interaction Logic: Instagram-style
   const handleInteraction = (e: React.MouseEvent | React.TouchEvent) => {
     let clientX: number;
     if ('touches' in e && e.touches.length > 0) {
@@ -180,7 +169,6 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
     } else if (xPercent > 70) {
       changePage(1);
     } else {
-      // Center click toggles permanent pause
       setIsPaused(!isPaused);
     }
   };
@@ -198,41 +186,23 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
   const endHold = (e: React.MouseEvent | React.TouchEvent) => {
     if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
     
-    // If it was a long press, we just stop holding and DON'T trigger interaction
     if (isLongPress.current) {
       setIsHolding(false);
       isLongPress.current = false;
       return;
     }
 
-    // If it was a quick tap, trigger interaction
     setIsHolding(false);
     handleInteraction(e);
-  };
-  const [pageScales, setPageScales] = useState<Record<number, number>>({});
-
-  const handlePageLoad = (page: any) => {
-    const { width: originalWidth, height: originalHeight } = page.getViewport({ scale: 1 });
-    const isDesktop = window.innerWidth >= 640;
-    const vWidth = window.innerWidth;
-    const vHeight = window.innerHeight;
-    
-    const availableHeight = isDesktop ? vHeight - 320 : vHeight - 200;
-    const availableWidth = vWidth - (isDesktop ? 240 : 40);
-
-    const scale = Math.min(availableWidth / originalWidth, availableHeight / originalHeight);
-    setPageScales(prev => ({ ...prev, [page.pageNumber]: scale }));
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-12">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/90 backdrop-blur-xl animate-fadeIn" 
         onClick={onClose}
       />
       
-      {/* Main Dialog Container */}
       <div 
         className="relative w-full h-full sm:rounded-2xl bg-black flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/5 animate-scaleIn overflow-hidden select-none touch-none"
         onMouseDown={startHold}
@@ -241,7 +211,6 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
         onTouchEnd={(e) => { e.preventDefault(); endHold(e); }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Instagram Stories Style Progress Bars */}
         <div className="absolute top-4 left-4 right-4 z-50 flex gap-1.5 px-2 pointer-events-none">
           {Array.from({ length: numPages || 0 }).map((_, i) => {
             const index = i + 1;
@@ -261,7 +230,6 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
           })}
         </div>
 
-        {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-4 border-b border-white/5 bg-black/40 backdrop-blur-md z-30" onClick={e => e.stopPropagation()}>
           <div className="flex flex-col">
             <span className="text-[8px] tracking-[0.5em] uppercase text-gold/40 font-bold mb-1">{category}</span>
@@ -269,6 +237,12 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
           </div>
 
           <div className="flex items-center gap-4">
+            {isAdmin && (
+              <>
+                <Button variant="ghost" size="icon" className="text-white/40 hover:text-blue-400"><Edit className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="icon" className="text-white/40 hover:text-red-400"><Trash2 className="w-4 h-4" /></Button>
+              </>
+            )}
             <Button variant="ghost" size="sm" className="text-white/20 hidden sm:flex hover:text-gold" onClick={toggleFullscreen}>
               <Maximize2 className="w-4 h-4" />
             </Button>
@@ -277,54 +251,40 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
           </div>
         </div>
 
-        {/* Main Viewport */}
         <div 
           ref={scrollContainerRef} 
           className="flex-1 bg-black overflow-hidden flex justify-center items-center relative py-4 px-4"
         >
-          <div className="relative pointer-events-none">
+          <div className="relative">
             <Document 
               file={url} 
-              onLoadSuccess={({ numPages }: { numPages: number }) => setNumPages(numPages)} 
+              onLoadSuccess={onDocumentLoadSuccess} 
               loading={null}
             >
-            {numPages && Array.from({ length: numPages }).map((_, i) => (
-              <div 
-                key={i} 
-                style={{ display: pageNumber === i + 1 ? 'block' : 'none' }}
-                className="relative group"
-              >
-                {/* Dynamic Ambilight Glow */}
-                <div className="absolute inset-[-100px] blur-[120px] opacity-40 saturate-[1.8] pointer-events-none scale-110 overflow-hidden select-none">
+            <div className="space-y-6">
+              {Array.from(new Array(renderedPages), (el, index) => (
+                <div key={`page_${index + 1}`} className="relative shadow-2xl rounded-lg overflow-hidden border border-white/5 bg-zinc-900/50 min-h-[400px] flex items-center justify-center">
                   <Page 
-                    pageNumber={i + 1} 
-                    scale={pageScales[i + 1] ? pageScales[i + 1] * 1.5 : 1.5}
+                    pageNumber={index + 1} 
+                    width={containerWidth ? Math.min(containerWidth, 1200) : 800}
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
-                    loading={null}
+                    loading={<div className="h-[600px] w-full flex items-center justify-center text-gold/20 animate-pulse">Loading Page...</div>}
+                    className="max-w-full h-auto"
                   />
                 </div>
-
-                {/* Primary Sharp Page */}
-                <div className="relative shadow-[0_0_80px_rgba(0,0,0,0.8)] z-10">
-                  <Page 
-                    pageNumber={i + 1} 
-                    scale={pageScales[i + 1] || 1}
-                    onLoadSuccess={handlePageLoad}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    loading={null}
-                    className="bg-transparent"
-                    canvasBackground="transparent"
-                  />
+              ))}
+              {renderedPages < numPages && (
+                <div className="py-12 flex flex-col items-center gap-4">
+                  <div className="w-12 h-12 border-2 border-gold/20 border-t-gold rounded-full animate-spin"></div>
+                  <p className="text-gold/40 text-sm font-medium">Loading next pages...</p>
                 </div>
-              </div>
-            ))}
+              )}
+            </div>
             </Document>
           </div>
         </div>
 
-        {/* Subtle Interaction Guide */}
         <div className="absolute inset-0 pointer-events-none z-10 flex justify-between px-8 items-center opacity-0 hover:opacity-10 transition-opacity">
           <div className="text-white text-[10px] uppercase tracking-[0.5em] rotate-180" style={{ writingMode: 'vertical-rl' }}>Previous</div>
           <div className="text-white text-[10px] uppercase tracking-[0.5em]" style={{ writingMode: 'vertical-rl' }}>Next</div>
