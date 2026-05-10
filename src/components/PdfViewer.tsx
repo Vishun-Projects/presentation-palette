@@ -60,6 +60,8 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
   const [isPaused, setIsPaused] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
+  const [pageDimensions, setPageDimensions] = useState<{ width: number; height: number } | null>(null);
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastPageChangeTime = useRef<number>(0);
@@ -70,6 +72,7 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
     const updateDimensions = () => {
       if (scrollContainerRef.current) {
         setContainerWidth(scrollContainerRef.current.clientWidth);
+        setContainerHeight(scrollContainerRef.current.clientHeight);
       }
     };
     updateDimensions();
@@ -185,6 +188,26 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
     setNumPages(numPages);
   }
 
+  function onPageLoadSuccess(page: any) {
+    const viewport = page.getViewport({ scale: 1 });
+    setPageDimensions({ width: viewport.width, height: viewport.height });
+  }
+
+  const calculateScale = () => {
+    if (!pageDimensions || !containerWidth || !containerHeight) return 1;
+    
+    const padding = 48; // 24px each side
+    const availableWidth = containerWidth - padding;
+    const availableHeight = containerHeight - padding;
+    
+    const scaleW = availableWidth / pageDimensions.width;
+    const scaleH = availableHeight / pageDimensions.height;
+    
+    return Math.min(scaleW, scaleH);
+  };
+
+  const scale = calculateScale();
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-12">
       <div 
@@ -257,11 +280,12 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
               <div className="relative shadow-2xl transition-opacity duration-300 flex items-center justify-center max-w-full max-h-full overflow-hidden">
                 <Page 
                   pageNumber={pageNumber} 
-                  width={1400} 
+                  scale={scale}
+                  onLoadSuccess={onPageLoadSuccess}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   loading={<div className="h-[600px] w-full flex items-center justify-center text-gold/20 animate-pulse font-serif italic text-lg">NVISION...</div>}
-                  className="max-w-full max-h-full [&>canvas]:!max-w-full [&>canvas]:!max-h-full [&>canvas]:!h-auto [&>canvas]:!w-auto [&>canvas]:object-contain shadow-2xl"
+                  className="shadow-2xl transition-all duration-300"
                 />
               </div>
             </Document>
