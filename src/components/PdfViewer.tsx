@@ -63,6 +63,7 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
   const [containerWidth, setContainerWidth] = useState(0);
   const [containerHeight, setContainerHeight] = useState(0);
   const [renderedPages, setRenderedPages] = useState<number>(3);
+  const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
   
   const isLongPress = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -76,10 +77,32 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
         setContainerHeight(scrollContainerRef.current.clientHeight);
       }
     };
-    updateDimensions();
+    // Initial delay to ensure container is rendered
+    const timer = setTimeout(updateDimensions, 100);
     window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
+    return () => {
+      window.removeEventListener('resize', updateDimensions);
+      clearTimeout(timer);
+    };
   }, []);
+
+  const onPageLoadSuccess = (page: any) => {
+    setPageSize({ width: page.width, height: page.height });
+  };
+
+  const calculateScale = () => {
+    if (!pageSize.width || !containerWidth || !containerHeight) return 1.0;
+    
+    const padding = 48; // Total padding around the PDF
+    const availableWidth = containerWidth - padding;
+    const availableHeight = containerHeight - padding;
+    
+    const widthScale = availableWidth / pageSize.width;
+    const heightScale = availableHeight / pageSize.height;
+    
+    // Return the smaller scale to ensure it fits both ways (contain)
+    return Math.min(widthScale, heightScale);
+  };
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -267,12 +290,12 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
               <div className="relative shadow-2xl overflow-hidden transition-all duration-500 ease-out flex items-center justify-center">
                 <Page 
                   pageNumber={pageNumber} 
-                  width={containerWidth ? containerWidth * 0.95 : 800}
-                  height={containerHeight ? containerHeight * 0.8 : undefined}
+                  scale={calculateScale()}
+                  onLoadSuccess={onPageLoadSuccess}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   loading={<div className="h-[600px] w-full flex items-center justify-center text-gold/20 animate-pulse font-serif italic text-lg">NVISION...</div>}
-                  className="max-w-full max-h-full object-contain"
+                  className="shadow-2xl"
                 />
                 
                 {/* Pre-render next page hidden for speed - Force hidden with style */}
@@ -280,8 +303,7 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
                   <div style={{ display: 'none' }}>
                     <Page 
                       pageNumber={pageNumber + 1} 
-                      width={containerWidth ? containerWidth * 0.95 : 800}
-                      height={containerHeight ? containerHeight * 0.8 : undefined}
+                      scale={calculateScale()}
                       renderTextLayer={false}
                       renderAnnotationLayer={false}
                     />
