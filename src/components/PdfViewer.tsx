@@ -36,7 +36,7 @@ export function PdfViewer(props: PdfViewerProps) {
       Document = rp.Document;
       Page = rp.Page;
       pdfjs = rp.pdfjs;
-      pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+      pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
       setIsReady(true);
     };
     loadPdf();

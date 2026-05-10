@@ -310,48 +310,6 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
         </div>
       </section>
 
-      {/* TESTIMONIALS (Conditional) */}
-      {testimonials.length > 0 && (
-        <section className="py-24 px-[5vw] bg-surface-1 overflow-hidden">
-          <div className="flex flex-wrap justify-between items-end gap-5 mb-16 reveal">
-            <div>
-              <p className="text-[11px] tracking-[0.3em] uppercase text-gold mb-3">Client Stories</p>
-              <h2 className="font-serif font-light leading-[1.05] text-warm" style={{ fontSize: "clamp(32px,5vw,62px)" }}>
-                What They <em className="text-gold">Say</em>
-              </h2>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonials.map((t: Testimonial, i: number) => (
-              <div
-                key={t.id}
-                className="bg-surface-2 p-8 border border-gold/10 relative reveal"
-                style={{ transitionDelay: `${i * 0.1}s` }}
-              >
-                <span className="text-gold/20 text-6xl font-serif absolute top-4 right-6 italic">"</span>
-                <p className="text-sm leading-[1.8] text-warm/60 mb-8 relative z-10 italic">
-                  {t.content}
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gold/10 overflow-hidden border border-gold/20">
-                    {t.avatar_path ? (
-                      <img src={t.avatar_path} className="w-full h-full object-cover" alt={t.name} />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gold font-serif text-lg">
-                        {t.name[0]}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-warm font-serif text-lg leading-none mb-1">{t.name}</div>
-                    <div className="text-[10px] tracking-widest uppercase text-gold/60">{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* PROCESS */}
       <section id="process" className="py-24 px-[5vw] bg-background">
@@ -387,7 +345,8 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
       </section>
 
       {/* TESTIMONIALS */}
-      <section id="testimonials" className="py-24 px-[5vw] bg-background relative overflow-hidden">
+      {testimonials.length > 0 && (
+        <section id="testimonials" className="py-24 px-[5vw] bg-background relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-gold/5 blur-[100px] -translate-y-1/2 translate-x-1/2 rounded-full" />
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 reveal">
           <div>
@@ -427,6 +386,7 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
           ))}
         </div>
       </section>
+      )}
 
       {/* ABOUT */}
       <section
@@ -525,6 +485,18 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
                   +91 93245 75004
                 </a>
               </div>
+              <div className="group">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-[10px] tracking-[0.2em] uppercase text-warm/40">Instagram</span>
+                </div>
+                <a href="https://www.instagram.com/nvision_creates" target="_blank" rel="noopener noreferrer" className="inline-block text-warm/70 hover:text-gold transition-colors">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </a>
+              </div>
             </div>
 
             <div className="mt-16 pt-10 border-t border-gold/10">
@@ -602,15 +574,6 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
       <footer className="bg-background py-12 px-[5vw] border-t border-gold/10 flex flex-col sm:flex-row justify-between items-center gap-8 text-center sm:text-left">
         <div className="flex flex-col items-center sm:items-start gap-4">
           <img src="/nvision-logo.png" alt="NVision" className="h-9 w-auto" />
-          <div className="flex items-center gap-4">
-            <a href="https://www.instagram.com/nvision_creates" target="_blank" rel="noopener noreferrer" className="text-warm/30 hover:text-gold transition-colors">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-              </svg>
-            </a>
-          </div>
         </div>
         <div className="text-[11px] text-warm/20 tracking-wide uppercase font-medium">© 2025 NVision — Designing Ideas That Speak.</div>
         <div className="text-[11px] text-warm/30 sm:text-right">
