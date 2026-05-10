@@ -262,14 +262,15 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
               onLoadSuccess={onDocumentLoadSuccess} 
               loading={<div className="flex flex-col items-center gap-4"><div className="w-8 h-8 border-2 border-gold/20 border-t-gold rounded-full animate-spin"></div></div>}
             >
-              <div className="relative shadow-2xl overflow-hidden transition-transform duration-500 ease-out">
+              <div className="relative shadow-2xl overflow-hidden transition-all duration-500 ease-out flex items-center justify-center">
                 <Page 
                   pageNumber={pageNumber} 
-                  width={containerWidth ? Math.min(containerWidth, 1200) : 800}
+                  width={containerWidth ? containerWidth * 0.95 : 800}
+                  height={containerHeight ? containerHeight * 0.8 : undefined}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   loading={<div className="h-[600px] w-full flex items-center justify-center text-gold/20 animate-pulse font-serif italic text-lg">NVISION...</div>}
-                  className="max-w-full h-auto"
+                  className="max-w-full max-h-full object-contain"
                 />
                 
                 {/* Pre-render next page hidden for speed - Force hidden with style */}
@@ -277,7 +278,8 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
                   <div style={{ display: 'none' }}>
                     <Page 
                       pageNumber={pageNumber + 1} 
-                      width={containerWidth ? Math.min(containerWidth, 1200) : 800}
+                      width={containerWidth ? containerWidth * 0.95 : 800}
+                      height={containerHeight ? containerHeight * 0.8 : undefined}
                       renderTextLayer={false}
                       renderAnnotationLayer={false}
                     />
