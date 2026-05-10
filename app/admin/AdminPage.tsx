@@ -381,11 +381,13 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                                       type="file" 
                                       accept=".pdf" 
                                       className="absolute inset-0 opacity-0 cursor-pointer" 
+                                      onBlur={field.onBlur}
+                                      name={field.name}
+                                      ref={field.ref}
                                       onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (file) onChange(file);
                                       }}
-                                      {...field}
                                     />
                                     <div className="flex flex-col items-center gap-2 pointer-events-none">
                                       <FileText className="w-6 h-6 text-zinc-600 group-hover:text-white transition-colors" />
@@ -411,11 +413,13 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
                                       type="file" 
                                       accept="image/*" 
                                       className="absolute inset-0 opacity-0 cursor-pointer" 
+                                      onBlur={field.onBlur}
+                                      name={field.name}
+                                      ref={field.ref}
                                       onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (file) onChange(file);
                                       }}
-                                      {...field}
                                     />
                                     <div className="flex flex-col items-center gap-2 pointer-events-none">
                                       <Camera className="w-6 h-6 text-zinc-600 group-hover:text-white transition-colors" />
