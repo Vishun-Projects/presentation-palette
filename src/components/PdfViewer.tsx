@@ -62,6 +62,7 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
   const [containerWidth, setContainerWidth] = useState(0);
   const [containerHeight, setContainerHeight] = useState(0);
   const [pageDimensions, setPageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [isDocumentLoading, setIsDocumentLoading] = useState(true);
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastPageChangeTime = useRef<number>(0);
@@ -77,8 +78,23 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
     };
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
+
+    // Pre-load PDF dimensions to avoid scale-snap
+    const loadDimensions = async () => {
+      try {
+        const loadingTask = pdfjs.getDocument(url);
+        const pdf = await loadingTask.promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1 });
+        setPageDimensions({ width: viewport.width, height: viewport.height });
+      } catch (err) {
+        console.error("Error loading PDF dimensions:", err);
+      }
+    };
+    loadDimensions();
+
     return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
+  }, [url]);
 
   const changePage = useCallback((offset: number) => {
     const now = Date.now();
@@ -186,6 +202,7 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
+    setIsDocumentLoading(false);
   }
 
   function onPageLoadSuccess(page: any) {
@@ -211,12 +228,12 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-12">
       <div 
-        className="absolute inset-0 bg-black/90 backdrop-blur-xl animate-fadeIn" 
+        className="absolute inset-0 bg-black/95 backdrop-blur-xl" 
         onClick={onClose}
       />
       
       <div 
-        className="relative w-full h-full sm:rounded-2xl bg-black flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/5 animate-scaleIn overflow-hidden select-none touch-none"
+        className="relative w-full h-full sm:rounded-2xl bg-black flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/5 overflow-hidden select-none touch-none"
         onMouseDown={startHold}
         onMouseUp={endHold}
         onTouchStart={startHold}
@@ -277,16 +294,18 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
               loading={<div className="flex flex-col items-center gap-4"><div className="w-8 h-8 border-2 border-gold/20 border-t-gold rounded-full animate-spin"></div></div>}
               className="max-w-full max-h-full flex items-center justify-center"
             >
-              <div className="relative shadow-2xl transition-opacity duration-300 flex items-center justify-center max-w-full max-h-full overflow-hidden">
-                <Page 
-                  pageNumber={pageNumber} 
-                  scale={scale}
-                  onLoadSuccess={onPageLoadSuccess}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  loading={<div className="h-[600px] w-full flex items-center justify-center text-gold/20 animate-pulse font-serif italic text-lg">NVISION...</div>}
-                  className="shadow-2xl transition-all duration-300"
-                />
+              <div className="relative shadow-2xl flex items-center justify-center max-w-full max-h-full overflow-hidden">
+                {pageDimensions && (
+                  <Page 
+                    pageNumber={pageNumber} 
+                    scale={scale}
+                    onLoadSuccess={onPageLoadSuccess}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                    loading={null}
+                    className="shadow-2xl"
+                  />
+                )}
               </div>
             </Document>
           </div>
