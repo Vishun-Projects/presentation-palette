@@ -99,8 +99,8 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
       {/* NAV */}
       <nav
         className={`fixed top-0 inset-x-0 z-50 flex items-center justify-between px-[5vw] transition-all duration-300 ${scrolled
-            ? "py-3 bg-background/95 backdrop-blur-md border-b border-gold/10"
-            : "py-4 sm:py-5"
+          ? "py-3 bg-background/95 backdrop-blur-md border-b border-gold/10"
+          : "py-4 sm:py-5"
           }`}
       >
         <a href="#home" className="flex items-center" onClick={close}>
@@ -179,7 +179,7 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
       {/* HERO */}
       <section
         id="home"
-        className="relative min-h-[100svh] flex flex-col justify-end px-[5vw] pb-[14vw] pt-32 overflow-hidden"
+        className="relative min-h-[100svh] flex flex-col justify-center sm:justify-end px-[5vw] pb-[10vh] sm:pb-[14vw] pt-20 sm:pt-32 overflow-hidden"
       >
         <div className="absolute inset-0 bg-background">
           <div className="absolute top-0 right-0 w-1/2 h-[70%] bg-[radial-gradient(ellipse_at_top_right,oklch(0.76_0.09_80/0.07)_0%,transparent_70%)]" />
@@ -521,8 +521,8 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
                   <Phone className="w-4 h-4 text-gold" />
                   <span className="text-[10px] tracking-[0.2em] uppercase text-warm/40">Call / WhatsApp</span>
                 </div>
-                <a href="tel:+919324575XXX" className="font-serif text-2xl text-warm/70 hover:text-gold transition-colors">
-                  +91 93245 75XXX
+                <a href="tel:+919324575004" className="font-serif text-2xl text-warm/70 hover:text-gold transition-colors">
+                  +91 93245 75004
                 </a>
               </div>
             </div>

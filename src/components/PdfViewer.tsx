@@ -58,6 +58,7 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
   const [isPaused, setIsPaused] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
   const [progress, setProgress] = useState(0);
+  const isLongPress = useRef(false);
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollTime = useRef<number>(0);
@@ -184,16 +185,29 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
     }
   };
 
-  const startHold = () => {
-    // Only start "hold to pause" after a brief delay to distinguish from a click
+  const startHold = (e: React.MouseEvent | React.TouchEvent) => {
+    isLongPress.current = false;
+    if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+    
     holdTimerRef.current = setTimeout(() => {
       setIsHolding(true);
-    }, 150);
+      isLongPress.current = true;
+    }, 200);
   };
 
-  const endHold = () => {
+  const endHold = (e: React.MouseEvent | React.TouchEvent) => {
     if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+    
+    // If it was a long press, we just stop holding and DON'T trigger interaction
+    if (isLongPress.current) {
+      setIsHolding(false);
+      isLongPress.current = false;
+      return;
+    }
+
+    // If it was a quick tap, trigger interaction
     setIsHolding(false);
+    handleInteraction(e);
   };
   const [pageScales, setPageScales] = useState<Record<number, number>>({});
 
@@ -222,9 +236,9 @@ function PdfViewerInner({ url, title, category, onClose }: PdfViewerProps) {
       <div 
         className="relative w-full h-full sm:rounded-2xl bg-black flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/5 animate-scaleIn overflow-hidden select-none touch-none"
         onMouseDown={startHold}
-        onMouseUp={(e) => { endHold(); handleInteraction(e); }}
+        onMouseUp={endHold}
         onTouchStart={startHold}
-        onTouchEnd={(e) => { endHold(); handleInteraction(e); }}
+        onTouchEnd={(e) => { e.preventDefault(); endHold(e); }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Instagram Stories Style Progress Bars */}
