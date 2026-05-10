@@ -61,6 +61,7 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
   const [isHolding, setIsHolding] = useState(false);
   const [progress, setProgress] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
   const [renderedPages, setRenderedPages] = useState<number>(3);
   
   const isLongPress = useRef(false);
@@ -72,6 +73,7 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
     const updateDimensions = () => {
       if (scrollContainerRef.current) {
         setContainerWidth(scrollContainerRef.current.clientWidth);
+        setContainerHeight(scrollContainerRef.current.clientHeight);
       }
     };
     updateDimensions();

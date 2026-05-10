@@ -125,8 +125,8 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
       formData.append("cat", values.cat);
       if (editingItem) formData.append("id", editingItem.id);
       
-      const pdfFile = (document.getElementById("pdf-upload") as HTMLInputElement).files?.[0];
-      const thumbFile = (document.getElementById("thumb-upload") as HTMLInputElement).files?.[0];
+      const pdfFile = values.pdf;
+      const thumbFile = values.thumb;
 
       if (!pdfFile && !editingItem) {
         toast.error("PDF file required");
@@ -134,8 +134,8 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
         return;
       }
 
-      if (pdfFile) formData.append("pdf", pdfFile);
-      if (thumbFile) formData.append("thumb", thumbFile);
+      if (pdfFile instanceof File) formData.append("pdf", pdfFile);
+      if (thumbFile instanceof File) formData.append("thumb", thumbFile);
 
       if (editingItem) {
         await updatePinFn(formData);
@@ -145,6 +145,7 @@ export default function AdminPage({ initialPins, initialTestimonials, initialFee
         toast.success("Project created");
       }
       
+
       pinForm.reset();
       setEditingItem(null);
       setIsAddProjectOpen(false);
