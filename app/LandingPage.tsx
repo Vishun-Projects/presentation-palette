@@ -179,7 +179,7 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
       {/* HERO */}
       <section
         id="home"
-        className="relative min-h-[100svh] flex flex-col justify-center sm:justify-end px-[5vw] pb-[10vh] sm:pb-[14vw] pt-20 sm:pt-32 overflow-hidden"
+        className="relative min-h-[100svh] flex flex-col justify-center sm:justify-end px-[5vw] pb-[10vh] sm:pb-[14vw] pt-12 sm:pt-32 overflow-hidden"
       >
         <div className="absolute inset-0 bg-background">
           <div className="absolute top-0 right-0 w-1/2 h-[70%] bg-[radial-gradient(ellipse_at_top_right,oklch(0.76_0.09_80/0.07)_0%,transparent_70%)]" />

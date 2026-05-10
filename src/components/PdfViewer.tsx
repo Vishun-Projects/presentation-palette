@@ -189,6 +189,7 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
     if (isLongPress.current) {
       setIsHolding(false);
       isLongPress.current = false;
+      // When releasing long press, we stay on same page and resume
       return;
     }
 
@@ -255,32 +256,34 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
           ref={scrollContainerRef} 
           className="flex-1 bg-black overflow-hidden flex justify-center items-center relative py-4 px-4"
         >
-          <div className="relative">
+          <div className="w-full h-full flex items-center justify-center">
             <Document 
               file={url} 
               onLoadSuccess={onDocumentLoadSuccess} 
-              loading={null}
+              loading={<div className="flex flex-col items-center gap-4"><div className="w-8 h-8 border-2 border-gold/20 border-t-gold rounded-full animate-spin"></div></div>}
             >
-            <div className="space-y-6">
-              {Array.from(new Array(renderedPages), (el, index) => (
-                <div key={`page_${index + 1}`} className="relative shadow-2xl rounded-lg overflow-hidden border border-white/5 bg-zinc-900/50 min-h-[400px] flex items-center justify-center">
-                  <Page 
-                    pageNumber={index + 1} 
-                    width={containerWidth ? Math.min(containerWidth, 1200) : 800}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    loading={<div className="h-[600px] w-full flex items-center justify-center text-gold/20 animate-pulse">Loading Page...</div>}
-                    className="max-w-full h-auto"
-                  />
-                </div>
-              ))}
-              {renderedPages < numPages && (
-                <div className="py-12 flex flex-col items-center gap-4">
-                  <div className="w-12 h-12 border-2 border-gold/20 border-t-gold rounded-full animate-spin"></div>
-                  <p className="text-gold/40 text-sm font-medium">Loading next pages...</p>
-                </div>
-              )}
-            </div>
+              <div className="relative shadow-2xl overflow-hidden transition-transform duration-500 ease-out">
+                <Page 
+                  pageNumber={pageNumber} 
+                  width={containerWidth ? Math.min(containerWidth, 1200) : 800}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  loading={<div className="h-[600px] w-full flex items-center justify-center text-gold/20 animate-pulse font-serif italic text-lg">NVISION...</div>}
+                  className="max-w-full h-auto"
+                />
+                
+                {/* Pre-render next page hidden for speed - Force hidden with style */}
+                {numPages > pageNumber && (
+                  <div style={{ display: 'none' }}>
+                    <Page 
+                      pageNumber={pageNumber + 1} 
+                      width={containerWidth ? Math.min(containerWidth, 1200) : 800}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                    />
+                  </div>
+                )}
+              </div>
             </Document>
           </div>
         </div>
