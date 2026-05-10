@@ -245,21 +245,23 @@ function PdfViewerInner({ url, title, category, onClose, isAdmin }: PdfViewerPro
         {/* PDF Content Area */}
         <div 
           ref={scrollContainerRef} 
-          className="flex-1 bg-black overflow-auto scrollbar-hide flex justify-center items-start relative py-6 px-4"
+          className="flex-1 bg-black overflow-hidden flex justify-center items-center relative py-6 px-4"
         >
-          <div className="flex items-center justify-center min-w-full">
+          <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
             <Document 
               file={url} 
               onLoadSuccess={onDocumentLoadSuccess} 
               loading={<div className="flex flex-col items-center gap-4"><div className="w-8 h-8 border-2 border-gold/20 border-t-gold rounded-full animate-spin"></div></div>}
+              className="max-w-full max-h-full flex items-center justify-center"
             >
-              <div className="relative shadow-2xl transition-opacity duration-300 flex items-center justify-center">
+              <div className="relative shadow-2xl transition-opacity duration-300 flex items-center justify-center max-w-full max-h-full">
                 <Page 
                   pageNumber={pageNumber} 
+                  width={1400} // High quality base
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   loading={<div className="h-[600px] w-full flex items-center justify-center text-gold/20 animate-pulse font-serif italic text-lg">NVISION...</div>}
-                  className="shadow-2xl"
+                  className="max-w-full max-h-full [&>canvas]:max-w-full [&>canvas]:max-h-full [&>canvas]:h-auto [&>canvas]:w-auto [&>canvas]:object-contain shadow-2xl"
                 />
               </div>
             </Document>
