@@ -16,6 +16,11 @@ export const saveFile = async (buffer: Buffer, fileName: string, subDir: string)
     return url;
   }
 
+  // If we are on Vercel but token is missing, fail with a clear message
+  if (process.env.VERCEL) {
+    throw new Error("Vercel Blob storage is not connected. Please go to your Vercel Dashboard, click the 'Storage' tab, and connect 'Blob' to enable production uploads.");
+  }
+
   // Fallback to local storage for local development
   const uploadDir = join(process.cwd(), "public", "uploads", subDir);
   try {
