@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@import "../node_modules/tw-animate-css/dist/tw-animate.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-warm: var(--warm);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+}
+
+:root {
+  --radius: 0.5rem;
+  --gold: oklch(0.76 0.09 80);
+  --gold-light: oklch(0.87 0.07 85);
+  --warm: oklch(0.95 0.02 80);
+  --surface-1: oklch(0.18 0 0);
+  --surface-2: oklch(0.22 0 0);
+
+  --background: oklch(0.13 0 0);
+  --foreground: oklch(0.95 0.02 80);
+  --card: oklch(0.18 0 0);
+  --card-foreground: oklch(0.95 0.02 80);
+  --popover: oklch(0.18 0 0);
+  --popover-foreground: oklch(0.95 0.02 80);
+  --primary: oklch(0.76 0.09 80);
+  --primary-foreground: oklch(0.13 0 0);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(0.95 0.02 80);
+  --muted: oklch(0.22 0 0);
+  --muted-foreground: oklch(0.65 0.02 80);
+  --accent: oklch(0.22 0 0);
+  --accent-foreground: oklch(0.95 0.02 80);
+  --destructive: oklch(0.6 0.22 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.3 0.02 80 / 30%);
+  --input: oklch(0.3 0.02 80 / 30%);
+  --ring: oklch(0.76 0.09 80);
+
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+}
+
+.dark {
+  --background: oklch(0.13 0 0);
+  --foreground: oklch(0.95 0.02 80);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+}
+
+@layer utilities {
+  .font-serif { font-family: var(--font-serif); }
+  .text-outline {
+    -webkit-text-stroke: 1px oklch(0.95 0.02 80 / 0.35);
+    color: transparent;
+  }
+}
+
+@keyframes fadeUp { from { opacity:0; transform: translateY(28px); } to { opacity:1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes sPulse { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+
+.animate-fadeUp { opacity:0; animation: fadeUp .9s ease forwards; }
+.animate-fadeIn { opacity:0; animation: fadeIn 1s ease forwards; }
+.animate-marquee { animation: marquee 22s linear infinite; }
+.animate-sPulse { animation: sPulse 2s ease infinite; }
+
+.reveal { opacity:0; transform: translateY(36px); transition: opacity .7s ease, transform .7s ease; }
+.reveal.visible { opacity:1; transform: translateY(0); }
+
+/* CUSTOM CURSOR (desktop only, activated by JS) */
+.cursor-dot, .cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  border-radius: 9999px;
+  display: none;
+  will-change: transform;
+}
+.has-cursor .cursor-dot,
+.has-cursor .cursor-ring { display: block; }
+.has-cursor, .has-cursor a, .has-cursor button { cursor: none; }
+
+.cursor-dot {
+  width: 6px; height: 6px;
+  background: var(--gold);
+  transition: width .25s, height .25s, background .25s;
+}
+.cursor-ring {
+  width: 34px; height: 34px;
+  border: 1px solid var(--gold);
+  opacity: .5;
+  transition: width .25s, height .25s, opacity .25s, background .25s;
+}
+.cursor-dot.is-hover { width: 0; height: 0; }
+.cursor-ring.is-hover {
+  width: 56px; height: 56px;
+  background: oklch(0.76 0.09 80 / 0.12);
+  opacity: .9;
+}
