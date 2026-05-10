@@ -47,6 +47,7 @@
     "@tanstack/router-plugin": "^1.167.28",
     "@types/better-sqlite3": "^7.6.13",
     "@types/uuid": "^10.0.0",
+    "@vercel/blob": "^2.3.3",
     "better-sqlite3": "^12.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
