@@ -44,7 +44,33 @@ const initDb = () => {
     );
   `);
 
-  // No initial seeding - user will manage data via admin panel
+  // Seeding logic:
+  // 1. "Default" projects that should always exist (re-seed if missing)
+  const defaultPins = [
+    { id: "ride-electric", name: "Ride Smart. Ride Electric.", cat: "Pitch Deck", pdf_path: "/work/ride-electric.pdf", thumb_path: "/work/ride-electric.jpg" },
+    { id: "spa", name: "Wellness Spa", cat: "Brand Presentation", pdf_path: "/work/spa.pdf", thumb_path: "/work/spa.jpg" },
+    { id: "marriotts", name: "Marriott's Strategy", cat: "Corporate Deck", pdf_path: "/work/marriotts.pdf", thumb_path: "/work/marriotts.jpg" },
+    { id: "admiral-max", name: "Brand Manual of Admiral Max", cat: "Brand Manual", pdf_path: "/work/admiral-max.pdf", thumb_path: "/work/spa.jpg" }, // Reuse spa thumb for now
+  ];
+
+  const insertPin = db.prepare("INSERT OR IGNORE INTO pins (id, name, cat, pdf_path, thumb_path) VALUES (?, ?, ?, ?, ?)");
+  defaultPins.forEach(p => insertPin.run(p.id, p.name, p.cat, p.pdf_path, p.thumb_path));
+
+  // 2. "One-time" seed: NVision Portfolio (only if DB is empty)
+  const totalCount = db.prepare("SELECT COUNT(*) as count FROM pins").get() as { count: number };
+  if (totalCount.count <= defaultPins.length) {
+    // If we only have defaults, try seeding the portfolio
+    insertPin.run("nvision-portfolio", "NVision Portfolio", "Portfolio", "/work/nvision-portfolio.pdf", "/work/ride-electric.jpg");
+  }
+
+  // 3. Default Testimonials (re-seed if missing)
+  const defaultTestimonials = [
+    { id: "t1", name: "Alex Rivera", role: "CEO, TechFlow", content: "NVision completely transformed our investor deck. The visuals were stunning and we closed our seed round in record time.", rating: 5 },
+    { id: "t2", name: "Sarah Chen", role: "Marketing Director, Aura", content: "The level of detail and understanding of our brand was impressive. Highly recommend for any high-stakes presentation.", rating: 5 },
+  ];
+  const insertT = db.prepare("INSERT OR IGNORE INTO testimonials (id, name, role, content, rating) VALUES (?, ?, ?, ?, ?)");
+  defaultTestimonials.forEach(t => insertT.run(t.id, t.name, t.role, t.content, t.rating));
+
   _db = db;
   return db;
 };

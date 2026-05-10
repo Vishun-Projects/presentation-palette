@@ -599,12 +599,23 @@ export default function LandingPage({ pins, testimonials }: { pins: Pin[], testi
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-background py-12 px-[5vw] border-t border-gold/10 flex flex-col sm:flex-row justify-between items-center gap-5 text-center sm:text-left">
-        <img src="/nvision-logo.png" alt="NVision" className="h-9 w-auto" />
-        <div className="text-[11px] text-warm/20 tracking-wide">© 2025 NVision Presentation &amp; Branding Co.</div>
+      <footer className="bg-background py-12 px-[5vw] border-t border-gold/10 flex flex-col sm:flex-row justify-between items-center gap-8 text-center sm:text-left">
+        <div className="flex flex-col items-center sm:items-start gap-4">
+          <img src="/nvision-logo.png" alt="NVision" className="h-9 w-auto" />
+          <div className="flex items-center gap-4">
+            <a href="https://www.instagram.com/nvision_creates" target="_blank" rel="noopener noreferrer" className="text-warm/30 hover:text-gold transition-colors">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div className="text-[11px] text-warm/20 tracking-wide uppercase font-medium">© 2025 NVision — Designing Ideas That Speak.</div>
         <div className="text-[11px] text-warm/30 sm:text-right">
-          Presentation &amp; Branding Co.
-          <a href="mailto:workwithnvision@gmail.com" className="block mt-1 text-gold break-all">
+          <span className="block opacity-40 mb-1">Get in touch</span>
+          <a href="mailto:workwithnvision@gmail.com" className="text-gold hover:text-gold/80 transition-colors font-medium">
             workwithnvision@gmail.com
           </a>
         </div>
